@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Správa Zákazníků</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #007BFF;
+            --secondary-color: #6c757d;
+            --background-color: #f8f9fa;
+            --card-background: #ffffff;
+            --border-color: #e0e0e0;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --edit-color: #ffc107;
+            --warning-color: #ffc107;
+            --orange-color: #fd7e14;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            line-height: 1.6;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 2rem;
+            padding: 2rem;
+            flex-grow: 1;
+            padding-bottom: 80px; /* Místo pro plovoucí lištu */
+        }
+
+        .card, .form-card {
+            background-color: var(--card-background);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .form-card h2 {
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .main-btn {
+            width: 100%;
+            padding: 2rem;
+            font-size: 1.5rem;
+            border: none;
+            border-radius: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-btn:last-child {
+            margin-bottom: 0;
+        }
+
+        .main-btn i {
+            margin-right: 1rem;
+        }
+
+        .main-btn:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .info-text {
+            color: var(--secondary-color);
+            margin-bottom: 1.5rem;
+            font-style: italic;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, textarea:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+            outline: none;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            color: white;
+            font-weight: bold;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button[type="submit"] {
+            background-color: var(--primary-color);
+        }
+
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .search-box input {
+            flex-grow: 1;
+        }
+
+        #search-button {
+            background-color: var(--secondary-color);
+            padding: 0.75rem 1rem;
+        }
+
+        #search-button:hover {
+            background-color: #5a6268;
+        }
+
+        .alert {
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            text-align: center;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .alert.show {
+            opacity: 1;
+        }
+
+        .alert.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        #search-results {
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .customer-card {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            position: relative;
+            transition: transform 0.3s ease;
+            text-align: left;
+            margin-bottom: 1rem;
+        }
+
+        .customer-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .customer-card p {
+            margin-bottom: 0.5rem;
+        }
+
+        .customer-card p strong {
+            color: var(--primary-color);
+        }
+
+        .customer-card .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .delete-btn, .edit-btn, .ignore-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: auto;
+        }
+
+        .delete-btn {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+            transform: scale(1.05);
+        }
+
+        .edit-btn {
+            background-color: var(--edit-color);
+            color: black;
+        }
+
+        .edit-btn:hover {
+            background-color: #e0a800;
+            transform: scale(1.05);
+        }
+
+        .ignore-btn {
+            background-color: var(--warning-color);
+            color: black;
+            margin-top: 1.5rem;
+            width: 100%;
+            padding: 1rem;
+        }
+
+        .ignore-btn:hover {
+            background-color: #d89e00;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .dialog-content, .loading-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .dialog-content p {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .dialog-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .warning-title {
+            color: var(--danger-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .back-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        .back-btn:hover {
+            background-color: #5a6268;
+        }
+        
+        .mb-1 {
+            margin-bottom: 1.5rem;
+            margin-top: 0;
+        }
+
+        .full-list-btn {
+            margin-top: 1rem;
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: #f0f0f0;
+            color: #333;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .full-list-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        .loading-content .spinner {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid var(--primary-color);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .phone-status-text {
+            margin-top: -0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.9em;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .phone-status-text.ok {
+            color: var(--success-color);
+        }
+
+        .phone-status-text.warning {
+            color: var(--danger-color);
+        }
+
+        /* --- Nové styly pro Vizitky a Plovoucí lištu --- */
+        .menu-divider {
+            margin: 2rem 0 1rem 0;
+            border: 0;
+            border-top: 2px solid var(--border-color);
+        }
+        
+        .print-subtitle {
+            margin-bottom: 1rem;
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .small-orange-btn {
+            display: inline-block;
+            padding: 0.6rem 1.5rem;
+            background-color: var(--orange-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: transform 0.2s ease, background-color 0.3s;
+        }
+
+        .small-orange-btn:hover {
+            background-color: #e26b0b;
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        .floating-nav {
+            position: fixed;
+            bottom: -100px;
+            left: 0;
+            width: 100%;
+            background-color: white;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.15);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            gap: 15px;
+            z-index: 1000;
+            transition: bottom 0.3s ease-in-out;
+        }
+
+        .floating-nav.visible {
+            bottom: 0;
+        }
+
+        .floating-text {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .btn-green {
+            background-color: var(--success-color);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .btn-green:hover { background-color: #218838; transform: translateY(-2px); }
+
+        .btn-orange {
+            background-color: var(--orange-color);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .btn-orange:hover { background-color: #e26b0b; transform: translateY(-2px); }
+
+        /* Responzivní styly */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                padding: 1rem;
+                padding-bottom: 80px;
+            }
+            
+            .form-card {
+                padding: 1.5rem;
+            }
+            
+            .main-btn {
+                padding: 1.5rem;
+                font-size: 1.2rem;
+            }
+
+            .customer-card .action-buttons {
+                position: static;
+                margin-top: 1rem;
+                justify-content: space-around;
+                gap: 0.5rem;
+            }
+
+            .floating-nav {
+                padding: 10px;
+                gap: 10px;
+            }
+            
+            .floating-text {
+                font-size: 0.9rem;
+            }
+            
+            .btn-green, .btn-orange {
+                font-size: 0.9rem;
+                padding: 0.5rem 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Správa Zákazníků - Instalatér tatínek, NTS Systems</h1>
+    </header>
+
+    <main class="container">
+        
+        <section id="initial-menu" class="card">
+            <button id="show-search-customer" class="main-btn"><i class="fas fa-search"></i> Vyhledat stávajícího zákazníka</button>
+            <button id="show-add-customer" class="main-btn"><i class="fas fa-user-plus"></i> Přidat nového zákazníka</button>
+            
+            <!-- NOVÁ ČÁST PRO VIZITKY -->
+            <hr class="menu-divider">
+            <h3 class="print-subtitle">Vizitky - tisk:</h3>
+            <a href="https://www.instalater-ar.cz/vizitky" class="small-orange-btn">Zobrazit</a>
+        </section>
+
+        <section id="add-customer-view" class="form-card hidden">
+            <h2>Přidat nového zákazníka</h2>
+            <p class="info-text">Není nutné vyplnit všechna pole.</p>
+            <form id="customer-form">
+                <input type="text" id="name" placeholder="Jméno a Příjmení">
+                <input type="text" id="address" placeholder="Adresa">
+                <input type="text" id="phone" placeholder="Telefon">
+                <div id="phone-status" class="phone-status-text"></div>
+                <input type="email" id="email" placeholder="E-mail">
+                <input type="text" id="date" placeholder="Datum">
+                <textarea id="note" placeholder="Poznámka"></textarea>
+                <button type="submit">Uložit</button>
+            </form>
+            <div id="alert-message" class="alert"></div>
+            <button id="back-to-menu-add" class="back-btn"><i class="fas fa-arrow-left"></i> Zpět</button>
+        </section>
+
+        <section id="search-customer-view" class="form-card hidden">
+            <h2>Vyhledat zákazníka</h2>
+            <!-- NOVÉ HORNÍ TLAČÍTKO ZPĚT -->
+            <button id="back-to-menu-search-top" class="back-btn mb-1"><i class="fas fa-arrow-left"></i> Zpět do menu</button>
+
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Hledat dle slova (pište zde)...">
+                <button id="search-button"><i class="fas fa-search"></i></button>
+            </div>
+            <button id="show-all-customers" class="full-list-btn">Zobrazit kompletní výpis databáze zákazníků</button>
+            <div id="search-results"></div>
+            <!-- PŮVODNÍ DOLNÍ TLAČÍTKO ZPĚT -->
+            <button id="back-to-menu-search" class="back-btn"><i class="fas fa-arrow-left"></i> Zpět do menu</button>
+        </section>
+        
+    </main>
+
+    <!-- NOVÁ PLOVOUCÍ LIŠTA -->
+    <div id="floating-nav" class="floating-nav">
+        <span class="floating-text">Vrátit se?</span>
+        <button id="float-main-menu" class="btn-green">Hlavní menu</button>
+        <button id="float-scroll-top" class="btn-orange">Nahoru</button>
+    </div>
+
+    <!-- Dialog pro potvrzení smazání -->
+    <div id="confirm-dialog" class="dialog-overlay hidden">
+        <div class="dialog-content">
+            <p>Chystáte se nevratně odstranit zákazníka z databáze NTS\Server\systems\ Rudolfsky\instalater\ instalater-database-zakazniku?</p>
+            <div class="dialog-buttons">
+                <button id="dialog-confirm" class="delete-btn">Ano, smazat ihned</button>
+                <button id="dialog-cancel" class="edit-btn">Ne, ponechat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Varovný dialog pro existujícího zákazníka -->
+    <div id="warning-dialog" class="dialog-overlay hidden">
+        <div class="dialog-content">
+            <h3 class="warning-title"><i class="fas fa-exclamation-triangle"></i> Varování!</h3>
+            <p>Zákazník se zadaným telefonním číslem již v databázi existuje!</p>
+            <div id="existing-customers-list"></div>
+            <button id="ignore-warning-btn" class="ignore-btn">Ignorovat varování a založit dalšího zákazníka se stejným telefonním číslem.</button>
+        </div>
+    </div>
+    
+    <!-- Překryvný prvek pro načítání -->
+    <div id="loading-overlay" class="dialog-overlay hidden">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Komunikace se serverem... Načítání dat...</p>
+        </div>
+    </div>
+    
+    <!-- Firebase skripty -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <script>
+        // Konfigurace pro Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAN-F1ej3JSvQG_6qIhcAywh3WCZfvu89I",
+            authDomain: "ahojyyy.firebaseapp.com",
+            projectId: "ahojyyy",
+            storageBucket: "ahojyyy.firebasestorage.app",
+            messagingSenderId: "89448328029",
+            appId: "1:89448328029:web:013dec5723130f5e5096b4"
+        };
+
+        // Inicializace Firebase aplikace
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const customersRef = database.ref('customers');
+
+        // Získání elementů z DOM
+        const initialMenu = document.getElementById('initial-menu');
+        const addCustomerView = document.getElementById('add-customer-view');
+        const addCustomerTitle = document.getElementById('add-customer-view').querySelector('h2');
+        const searchCustomerView = document.getElementById('search-customer-view');
+
+        const showAddCustomerBtn = document.getElementById('show-add-customer');
+        const showSearchCustomerBtn = document.getElementById('show-search-customer');
+        
+        const backToMenuAddBtn = document.getElementById('back-to-menu-add');
+        const backToMenuSearchBtn = document.getElementById('back-to-menu-search');
+        const backToMenuSearchTopBtn = document.getElementById('back-to-menu-search-top'); // Nové
+
+        // Elementy plovoucí lišty
+        const floatingNav = document.getElementById('floating-nav');
+        const floatMainMenuBtn = document.getElementById('float-main-menu');
+        const floatScrollTopBtn = document.getElementById('float-scroll-top');
+
+        const customerForm = document.getElementById('customer-form');
+        const nameInput = document.getElementById('name');
+        const addressInput = document.getElementById('address');
+        const phoneInput = document.getElementById('phone');
+        const phoneStatus = document.getElementById('phone-status');
+        const emailInput = document.getElementById('email');
+        const dateInput = document.getElementById('date');
+        const noteInput = document.getElementById('note');
+        const alertMessage = document.getElementById('alert-message');
+
+        const searchInput = document.getElementById('search-input');
+        const searchButton = document.getElementById('search-button');
+        const searchResults = document.getElementById('search-results');
+        const showAllCustomersBtn = document.getElementById('show-all-customers');
+
+        const confirmDialog = document.getElementById('confirm-dialog');
+        const dialogConfirmBtn = document.getElementById('dialog-confirm');
+        const dialogCancelBtn = document.getElementById('dialog-cancel');
+
+        const warningDialog = document.getElementById('warning-dialog');
+        const existingCustomersList = document.getElementById('existing-customers-list');
+        const ignoreWarningBtn = document.getElementById('ignore-warning-btn');
+
+        const loadingOverlay = document.getElementById('loading-overlay');
+
+        let currentCustomerId = null; 
+        let isIgnoringWarning = false; 
+
+        // Funkce pro přepínání mezi pohledy (upravena o resetování scrollování a lišty)
+        const showView = (view) => {
+            initialMenu.classList.add('hidden');
+            addCustomerView.classList.add('hidden');
+            searchCustomerView.classList.add('hidden');
+            view.classList.remove('hidden');
+
+            // Při přepnutí obrazovky se vždy posuneme na začátek
+            window.scrollTo({ top: 0, behavior: 'auto' });
+
+            // Ihned vynutíme kontrolu plovoucí lišty
+            setTimeout(checkFloatingNav, 50);
+        };
+
+        const normalizePhoneNumber = (phoneNumber) => {
+            if (!phoneNumber) return '';
+            return phoneNumber.replace(/\s/g, '');
+        };
+
+        const showAlert = (message, type) => {
+            alertMessage.textContent = message;
+            alertMessage.className = `alert show ${type}`;
+            setTimeout(() => {
+                alertMessage.className = 'alert';
+            }, 3000);
+        };
+
+        const deleteCustomer = (customerId) => {
+            customersRef.child(customerId).remove()
+                .then(() => {
+                    showAlert('Zákazník byl úspěšně smazán!', 'success');
+                    if (!warningDialog.classList.contains('hidden')) {
+                        warningDialog.classList.add('hidden');
+                        setPhoneStatus('Nový zákazník...', 'ok');
+                    }
+                    performSearch();
+                    confirmDialog.classList.add('hidden');
+                })
+                .catch(error => {
+                    showAlert('Chyba při mazání zákazníka: ' + error.message, 'error');
+                    confirmDialog.classList.add('hidden');
+                });
+        };
+
+        const createCustomerCard = (key, customer, container) => {
+            const customerCard = document.createElement('div');
+            customerCard.className = 'customer-card';
+            customerCard.innerHTML = `
+                <p><strong>Jméno:</strong> ${customer.name || ''}</p>
+                <p><strong>Adresa:</strong> ${customer.address || ''}</p>
+                <p><strong>Telefon:</strong> ${customer.phone || ''}</p>
+                <p><strong>E-mail:</strong> ${customer.email || ''}</p>
+                <p><strong>Datum:</strong> ${customer.date || ''}</p>
+                <p><strong>Poznámka:</strong> ${customer.note || ''}</p>
+                <div class="action-buttons">
+                    <button class="edit-btn" data-id="${key}"><i class="fas fa-edit"></i> Upravit</button>
+                    <button class="delete-btn" data-id="${key}"><i class="fas fa-trash-alt"></i> Smazat</button>
+                </div>
+            `;
+            container.appendChild(customerCard);
+        };
+
+        const addActionListeners = () => {
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    currentCustomerId = e.target.dataset.id;
+                    confirmDialog.classList.remove('hidden');
+                    confirmDialog.style.zIndex = '1001';
+                    warningDialog.style.zIndex = '1000';
+                });
+            });
+            document.querySelectorAll('.edit-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const customerId = e.target.dataset.id;
+                    customersRef.child(customerId).once('value', (snapshot) => {
+                        const customerData = snapshot.val();
+                        nameInput.value = customerData.name || '';
+                        addressInput.value = customerData.address || '';
+                        phoneInput.value = customerData.phone || '';
+                        emailInput.value = customerData.email || '';
+                        dateInput.value = customerData.date || '';
+                        noteInput.value = customerData.note || '';
+                        currentCustomerId = customerId;
+                        customerForm.querySelector('button[type="submit"]').textContent = 'Uložit úpravy';
+                        addCustomerTitle.textContent = 'Úprava existujícího zákazníka';
+                        warningDialog.classList.add('hidden');
+                        showView(addCustomerView);
+                    });
+                });
+            });
+        };
+
+        const performSearch = () => {
+            const searchTerm = normalizePhoneNumber(searchInput.value.toLowerCase());
+            searchResults.innerHTML = '';
+
+            customersRef.once('value', (snapshot) => {
+                const customers = snapshot.val();
+                let found = false;
+
+                if (customers) {
+                    Object.entries(customers).forEach(([key, customer]) => {
+                        const normalizedCustomerPhone = normalizePhoneNumber(customer.phone);
+                        const matches = Object.values(customer).some(value =>
+                            (value && typeof value === 'string' && value.toLowerCase().includes(searchInput.value.toLowerCase()))
+                        ) || normalizedCustomerPhone.includes(searchTerm);
+
+                        if (matches) {
+                            createCustomerCard(key, customer, searchResults);
+                            found = true;
+                        }
+                    });
+
+                    if (found) {
+                        addActionListeners();
+                    }
+                }
+
+                if (!found) {
+                    searchResults.innerHTML = '<p style="text-align: center; color: #dc3545;">Žádný zákazník neodpovídá zadanému filtru.</p>';
+                }
+            });
+        };
+
+        const showAllCustomers = () => {
+            loadingOverlay.classList.remove('hidden');
+            searchResults.innerHTML = '';
+
+            const startTime = Date.now();
+
+            customersRef.once('value', (snapshot) => {
+                const customers = snapshot.val();
+                const elapsedTime = Date.now() - startTime;
+                const remainingTime = 8000 - elapsedTime;
+
+                if (remainingTime > 0) {
+                    setTimeout(() => {
+                        loadingOverlay.classList.add('hidden');
+                        displayAllCustomers(customers);
+                    }, remainingTime);
+                } else {
+                    loadingOverlay.classList.add('hidden');
+                    displayAllCustomers(customers);
+                }
+            });
+        };
+
+        const displayAllCustomers = (customers) => {
+            if (customers) {
+                Object.entries(customers).forEach(([key, customer]) => {
+                    createCustomerCard(key, customer, searchResults);
+                });
+                addActionListeners();
+            } else {
+                searchResults.innerHTML = '<p style="text-align: center; color: #dc3545;">Databáze je prázdná.</p>';
+            }
+        };
+
+        const setPhoneStatus = (message, type) => {
+            phoneStatus.innerHTML = `<i class="fas fa-${type === 'ok' ? 'check' : 'times'}"></i> ${message}`;
+            phoneStatus.className = `phone-status-text ${type}`;
+        };
+
+        phoneInput.addEventListener('blur', () => {
+            phoneStatus.innerHTML = '';
+            const phoneNumber = normalizePhoneNumber(phoneInput.value.trim());
+
+            if (phoneNumber === '') {
+                return;
+            }
+
+            customersRef.once('value', (snapshot) => {
+                const customers = snapshot.val();
+                const existingCustomers = [];
+
+                if (customers) {
+                    Object.entries(customers).forEach(([key, customer]) => {
+                        const normalizedCustomerPhone = normalizePhoneNumber(customer.phone);
+                        if (normalizedCustomerPhone === phoneNumber) {
+                            existingCustomers.push({ key, ...customer });
+                        }
+                    });
+                }
+
+                if (existingCustomers.length > 0) {
+                    isIgnoringWarning = false;
+                    existingCustomersList.innerHTML = '';
+                    existingCustomers.forEach(customer => {
+                        const customerCard = document.createElement('div');
+                        customerCard.className = 'customer-card';
+                        customerCard.innerHTML = `
+                            <p><strong>Jméno:</strong> ${customer.name || ''}</p>
+                            <p><strong>Adresa:</strong> ${customer.address || ''}</p>
+                            <p><strong>Telefon:</strong> ${customer.phone || ''}</p>
+                            <p><strong>E-mail:</strong> ${customer.email || ''}</p>
+                            <p><strong>Datum:</strong> ${customer.date || ''}</p>
+                            <p><strong>Poznámka:</strong> ${customer.note || ''}</p>
+                            <div class="action-buttons">
+                                <button class="edit-btn" data-id="${customer.key}"><i class="fas fa-edit"></i> Upravit</button>
+                                <button class="delete-btn" data-id="${customer.key}"><i class="fas fa-trash-alt"></i> Smazat</button>
+                            </div>
+                        `;
+                        existingCustomersList.appendChild(customerCard);
+                    });
+                    addActionListeners();
+                    warningDialog.classList.remove('hidden');
+                } else {
+                    setPhoneStatus('Nový zákazník...', 'ok');
+                }
+            });
+        });
+
+        customerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const name = nameInput.value;
+            const address = addressInput.value;
+            const phone = phoneInput.value;
+            const email = emailInput.value;
+            const date = dateInput.value;
+            const note = noteInput.value;
+
+            if (!name && !address && !phone && !email && !date && !note) {
+                showAlert('Musí být vyplněno alespoň jedno pole!', 'error');
+                return;
+            }
+
+            const customer = {
+                name: name,
+                address: address,
+                phone: phone,
+                email: email,
+                date: date,
+                note: note
+            };
+
+            if (currentCustomerId) {
+                customersRef.child(currentCustomerId).update(customer)
+                    .then(() => {
+                        showAlert('Zákazník byl úspěšně upraven!', 'success');
+                        customerForm.reset();
+                        customerForm.querySelector('button[type="submit"]').textContent = 'Uložit';
+                        currentCustomerId = null;
+                        showView(searchCustomerView);
+                        performSearch();
+                    })
+                    .catch(error => {
+                        showAlert('Chyba při úpravě zákazníka: ' + error.message, 'error');
+                    });
+            } else {
+                customersRef.push(customer)
+                    .then(() => {
+                        showAlert('Zákazník byl úspěšně uložen!', 'success');
+                        customerForm.reset();
+                    })
+                    .catch(error => {
+                        showAlert('Chyba při ukládání zákazníka: ' + error.message, 'error');
+                    });
+            }
+        });
+
+        // Posluchače událostí pro tlačítka v menu
+        showAddCustomerBtn.addEventListener('click', () => {
+            showView(addCustomerView);
+            customerForm.reset();
+            currentCustomerId = null;
+            phoneStatus.innerHTML = '';
+            addCustomerTitle.textContent = 'Přidat nového zákazníka';
+            customerForm.querySelector('button[type="submit"]').textContent = 'Uložit';
+        });
+        showSearchCustomerBtn.addEventListener('click', () => {
+            showView(searchCustomerView);
+            searchInput.value = '';
+            searchResults.innerHTML = '';
+        });
+        
+        backToMenuAddBtn.addEventListener('click', () => showView(initialMenu));
+        backToMenuSearchBtn.addEventListener('click', () => showView(initialMenu));
+        backToMenuSearchTopBtn.addEventListener('click', () => showView(initialMenu)); // Posluchač horního tlačítka
+
+        searchButton.addEventListener('click', performSearch);
+        searchInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+        showAllCustomersBtn.addEventListener('click', showAllCustomers);
+
+        dialogConfirmBtn.addEventListener('click', () => {
+            if (currentCustomerId) {
+                deleteCustomer(currentCustomerId);
+            }
+        });
+        dialogCancelBtn.addEventListener('click', () => {
+            confirmDialog.classList.add('hidden');
+            currentCustomerId = null;
+        });
+
+        ignoreWarningBtn.addEventListener('click', () => {
+            warningDialog.classList.add('hidden');
+            setPhoneStatus('Takový zákazník již existuje, uložením se vytvoří další zákazník se stejným telefonním číslem.', 'warning');
+            isIgnoringWarning = true;
+        });
+
+        // --- Logika pro zobrazení/skrytí plovoucí lišty ---
+        let isTopVisible = false;
+        let isBottomVisible = false;
+
+        const checkFloatingNav = () => {
+            // Kontrolujeme pouze pokud jsme v záložce vyhledávání
+            if (!searchCustomerView.classList.contains('hidden')) {
+                // Pokud NENÍ vidět horní tlačítko ANI dolní tlačítko
+                if (!isTopVisible && !isBottomVisible) {
+                    floatingNav.classList.add('visible');
+                } else {
+                    floatingNav.classList.remove('visible');
+                }
+            } else {
+                floatingNav.classList.remove('visible');
+            }
+        };
+
+        // Moderní API pro sledování, co je aktuálně na obrazovce
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.target.id === 'back-to-menu-search-top') {
+                    isTopVisible = entry.isIntersecting;
+                }
+                if (entry.target.id === 'back-to-menu-search') {
+                    isBottomVisible = entry.isIntersecting;
+                }
+            });
+            checkFloatingNav();
+        }, { root: null, threshold: 0 });
+
+        observer.observe(backToMenuSearchTopBtn);
+        observer.observe(backToMenuSearchBtn);
+
+        // Posluchače pro tlačítka v plovoucí liště
+        floatMainMenuBtn.addEventListener('click', () => {
+            showView(initialMenu);
+        });
+
+        floatScrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'auto' });
+        });
+
+        // Zobrazení úvodního menu při načtení stránky
+        document.addEventListener('DOMContentLoaded', () => {
+            showView(initialMenu);
+        });
+
+    </script>
+</body>
+</html>
